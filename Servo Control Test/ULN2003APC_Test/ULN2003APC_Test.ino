@@ -18,7 +18,7 @@ double value;
 void loop() {
     // stepper.step(STEPS_PER_OUT);
     // stepper.step(-STEPS_PER_OUT);
-    value = 1023 * (analogRead(analogIn) / 1023.0 - 0.5);
+    value = 2 * 1850 * (analogRead(analogIn) / 1023.0 - 0.5);
     Serial.println(value);
 
     stepper.setSpeed(abs(value));
