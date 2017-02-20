@@ -1,6 +1,6 @@
 #include <Stepper.h>
 const int stepsPerRevolution = 200;
-const int motorSpeed = 50;
+const int motorSpeed = 100;
 const int stepLimit = 1000;
 // initialize the stepper library on pins 8 through 11:
 Stepper myStepper(stepsPerRevolution, 8, 9, 10, 11);
