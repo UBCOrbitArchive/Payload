@@ -11,16 +11,11 @@ Stepper stepper(STEPS_PER_REV, 8, 10, 9, 11);
 
 void setup() {
     stepper.setSpeed(MOTOR_SPEED);
-    Serial.begin(115200);
 }
 
 double value;
 void loop() {
-    // stepper.step(STEPS_PER_OUT);
-    // stepper.step(-STEPS_PER_OUT);
     value = 2 * 1850 * (analogRead(analogIn) / 1023.0 - 0.5);
-    Serial.println(value);
-
     stepper.setSpeed(abs(value));
     if (value > 0) stepper.step(1);
     else stepper.step(-1);
