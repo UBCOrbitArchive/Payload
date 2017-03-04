@@ -5,8 +5,21 @@
     #include "Wire.h"
 #endif
 
+// motor control import
+#include <Stepper.h>
+
+// motor constants
+#define STEPS_PER_REV 32
+#define STEPS_PER_OUT 2048
+
 // create new IMU instances
 MPU6050 mpu;
+
+// create new stepper obj, param: IN1, IN2, IN3, IN4 (reverse works)
+Stepper stepper(STEPS_PER_REV, 8, 10, 9, 11);
+
+// motor target value
+double motor_tgt;
 
 // built in LED output
 #define LED_PIN 13
@@ -112,6 +125,9 @@ void setup() {
 
     // configure pins
     pinMode(LED_PIN, OUTPUT);
+
+    // motor setup (set default motor speed)
+    stepper.setSpeed(500);
 }
 
 // ===[MAIN PROGRAM LOOP]===
@@ -163,5 +179,10 @@ void loop() {
         analogWrite(3, abs(euler[0])/M_PI * 100);
 
         // change motor setting
+        // euler value ranges from -PI to PI
+        motor_tgt = 2 * 1850 * (euler[0] / M_PI);
+        stepper.setSpeed(abs(motor_tgt));
+        if (value > 0) stepper.step(1);
+        else stepper.step(-1);
     }
 }
