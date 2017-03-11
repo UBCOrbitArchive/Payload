@@ -53,7 +53,7 @@ float euler[3];
 
 // ===[INTERRUPT SERVICE ROUTINE]===
 volatile bool mpuInterrupt = false;
-void dampDataRead() {
+void dmpDataReady() {
     mpuInterrupt = true;
 }
 
@@ -73,7 +73,7 @@ void setup() {
 
     // initialize device
     Serial.print(F("Initializing I2C devices..."));
-    mpu.initializ();
+    mpu.initialize();
     Serial.println(F("OK"));
 
     // verify conncetion
@@ -172,8 +172,8 @@ void loop() {
         Serial.println(euler[2] * 180/M_PI);
 
         // update LED to indicate activity
-        blinkState = !blinkState;
-        digitalWrite(LED_PIN, blinkState);
+        LED_blinkState = !LED_blinkState;
+        digitalWrite(LED_PIN, LED_blinkState);
 
         // power LED (analog 3) based on orientation (euler[0])
         analogWrite(3, abs(euler[0])/M_PI * 100);
@@ -182,7 +182,7 @@ void loop() {
         // euler value ranges from -PI to PI
         motor_tgt = 2 * 1850 * (euler[0] / M_PI);
         stepper.setSpeed(abs(motor_tgt));
-        if (value > 0) stepper.step(1);
+        if (motor_tgt > 0) stepper.step(1);
         else stepper.step(-1);
     }
 }
