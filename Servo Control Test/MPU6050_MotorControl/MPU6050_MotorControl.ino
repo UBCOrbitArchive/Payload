@@ -48,8 +48,14 @@ uint16_t fifoCount;
 // Quarternion container: [w, x, y, z]
 Quaternion q;
 
+// gravity vector
+VectorFloat gravity;
+
 // Euler angle container: [psi, theta, phi]
-float euler[3];
+//float euler[3];
+
+// yaw-pitch-roll container
+float ypr[3];
 
 // ===[INTERRUPT SERVICE ROUTINE]===
 volatile bool mpuInterrupt = false;
@@ -162,25 +168,40 @@ void loop() {
         fifoCount -= packetSize;
 
         // get angle in Euler degrees
+//        mpu.dmpGetQuaternion(&q, fifoBuffer);
+//        mpu.dmpGetEuler(euler, &q);
+//        Serial.print("Euler\t");
+//        Serial.print(euler[0] * 180/M_PI);
+//        Serial.print("\t");
+//        Serial.print(euler[1] * 180/M_PI);
+//        Serial.print("\t");
+//        Serial.println(euler[2] * 180/M_PI);
+
+        // get yaw-pitch-roll profiles based on gravity
         mpu.dmpGetQuaternion(&q, fifoBuffer);
-        mpu.dmpGetEuler(euler, &q);
-        Serial.print("Euler\t");
-        Serial.print(euler[0] * 180/M_PI);
+        mpu.dmpGetGravity(&gravity, &q);
+        mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
+        Serial.print("ypr\t");
+        Serial.print(ypr[0] * 180/M_PI);
         Serial.print("\t");
-        Serial.print(euler[1] * 180/M_PI);
+        Serial.print(ypr[1] * 180/M_PI);
         Serial.print("\t");
-        Serial.println(euler[2] * 180/M_PI);
+        Serial.println(ypr[2] * 180/M_PI);
 
         // update LED to indicate activity
         LED_blinkState = !LED_blinkState;
         digitalWrite(LED_PIN, LED_blinkState);
 
-        // power LED (analog 3) based on orientation (euler[0])
-        analogWrite(3, abs(euler[0])/M_PI * 100);
+        // power LED (analog 3) based on orientation/tilt
+//        float tilt=(abs(ypr[1])/M_PI+abs(ypr[2])/M_PI)/2;
+//        float level=(1/(400*tilt + 1));
+//        Serial.print("Level: ");
+//        Serial.println(level);
+//        analogWrite(3, abs(ypr[0])/M_PI * 100);
 
         // change motor setting
         // euler value ranges from -PI to PI
-        motor_tgt = 2 * 1850 * (euler[0] / M_PI);
+        motor_tgt = 2 * 1850 * (ypr[0] / M_PI);
         stepper.setSpeed(abs(motor_tgt));
         if (motor_tgt > 0) stepper.step(1);
         else stepper.step(-1);

@@ -90,7 +90,7 @@ MPU6050 mpu;
 // (in degrees) calculated from the quaternions coming from the FIFO.
 // Note that Euler angles suffer from gimbal lock (for more info, see
 // http://en.wikipedia.org/wiki/Gimbal_lock)
-#define OUTPUT_READABLE_EULER
+//#define OUTPUT_READABLE_EULER
 
 // uncomment "OUTPUT_READABLE_YAWPITCHROLL" if you want to see the yaw/
 // pitch/roll angles (in degrees) calculated from the quaternions coming
@@ -110,7 +110,7 @@ MPU6050 mpu;
 // components with gravity removed and adjusted for the world frame of
 // reference (yaw is relative to initial orientation, since no magnetometer
 // is present in this case). Could be quite handy in some cases.
-// #define OUTPUT_READABLE_WORLDACCEL
+ #define OUTPUT_READABLE_WORLDACCEL
 
 // uncomment "OUTPUT_TEAPOT" if you want output that matches the
 // format used for the InvenSense teapot demo
@@ -370,7 +370,7 @@ void loop() {
         digitalWrite(LED_PIN, blinkState);
 
         // power LED based on rotation
-        Serial.println((euler[0] + M_PI) / (2 * M_PI) * 255);
+        //Serial.println((euler[0] + M_PI) / (2 * M_PI) * 255);
         analogWrite(3, abs(euler[0])/M_PI * 100);
     }
 }
