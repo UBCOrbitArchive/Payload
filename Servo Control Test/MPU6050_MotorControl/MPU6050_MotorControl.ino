@@ -2,7 +2,7 @@
 #include "I2Cdev.h"
 #include "MPU6050_6Axis_MotionApps20.h"
 #if IC2DEV_IMPLEMENTATION == IC2DEV_ARDUINI_WIRE
-    #include "Wire.h"
+#include "Wire.h"
 #endif
 
 // motor control import
@@ -12,10 +12,13 @@
 #define STEPS_PER_REV 32
 #define STEPS_PER_OUT 2048
 
+// different operating modes
+#define HARD_INIT
+
 // create new IMU instances
 MPU6050 mpu;
 
-// create new stepper obj, param: IN1, IN2, IN3, IN4 (reverse works)
+// create new stepper obj, param: steps per revolution, IN1, IN2, IN3, IN4 (reverse works)
 Stepper stepper(STEPS_PER_REV, 8, 10, 9, 11);
 
 // motor target value
@@ -51,9 +54,6 @@ Quaternion q;
 // gravity vector
 VectorFloat gravity;
 
-// Euler angle container: [psi, theta, phi]
-//float euler[3];
-
 // yaw-pitch-roll container
 float ypr[3];
 
@@ -66,12 +66,12 @@ void dmpDataReady() {
 // ===[INITIAL SETUP]===
 void setup() {
     #if IC2DEV_IMPLEMENTATION == IC2DEV_ARDUINI_WIRE
-        Wire.begin();
+    Wire.begin();
 
-        // 400kHz I2C clock
-        TWBR = 24;
+    // 400kHz I2C clock
+    TWBR = 24;
     #elif IC2DEV_IMPLEMENTATION == I2CDEV_BUILTIN_FASTWIRE
-        Fastwire::setup(400, true);
+    Fastwire::setup(400, true);
     #endif
 
     // serial connection
@@ -122,7 +122,7 @@ void setup() {
 
         // get expected DMP packet size for later comparison
         packetSize = mpu.dmpGetFIFOPacketSize();
-    } else {
+        } else {
         // ERROR: (1) = initial memory load fail, (2) = DMP config update fail
         Serial.print(F("DMP initialization fail ("));
         Serial.print(devStatus);
@@ -134,6 +134,12 @@ void setup() {
 
     // motor setup (set default motor speed)
     stepper.setSpeed(500);
+
+    // instanciate stepper motor: move stepper motor until 
+    #ifdef HARD_INIT
+    // move motor 180 deg one direction
+    #endif 
+
 }
 
 // ===[MAIN PROGRAM LOOP]===
@@ -151,12 +157,12 @@ void loop() {
     // get current FIFO count
     fifoCount = mpu.getFIFOCount();
 
-    // check for overflow
+    // check for inputstream overflow
     if ((mpuIntStatus & 0x10) || fifoCount == 1024) {
         // reset
         mpu.resetFIFO();
         Serial.println(F("FIFO overflow! Reset occured"));
-    } else if (mpuIntStatus & 0x02) {
+        } else if (mpuIntStatus & 0x02) {
         // DMP data ready interrupt
         while (fifoCount < packetSize) fifoCount = mpu.getFIFOCount();
 
@@ -166,16 +172,6 @@ void loop() {
         // track FIFO count here for > 1 packets available
         // immediate read w/o more interrupts
         fifoCount -= packetSize;
-
-        // get angle in Euler degrees
-//        mpu.dmpGetQuaternion(&q, fifoBuffer);
-//        mpu.dmpGetEuler(euler, &q);
-//        Serial.print("Euler\t");
-//        Serial.print(euler[0] * 180/M_PI);
-//        Serial.print("\t");
-//        Serial.print(euler[1] * 180/M_PI);
-//        Serial.print("\t");
-//        Serial.println(euler[2] * 180/M_PI);
 
         // get yaw-pitch-roll profiles based on gravity
         mpu.dmpGetQuaternion(&q, fifoBuffer);
@@ -192,18 +188,10 @@ void loop() {
         LED_blinkState = !LED_blinkState;
         digitalWrite(LED_PIN, LED_blinkState);
 
-        // power LED (analog 3) based on orientation/tilt
-//        float tilt=(abs(ypr[1])/M_PI+abs(ypr[2])/M_PI)/2;
-//        float level=(1/(400*tilt + 1));
-//        Serial.print("Level: ");
-//        Serial.println(level);
-//        analogWrite(3, abs(ypr[0])/M_PI * 100);
-
-        // change motor setting
-        // euler value ranges from -PI to PI
-        motor_tgt = 2 * 1850 * (ypr[0] / M_PI);
-        stepper.setSpeed(abs(motor_tgt));
-        if (motor_tgt > 0) stepper.step(1);
+        // set motor target based on PITCH (ypr[1])
+        // **ASSUMING that IMU is placed in reference to rotor
+        // if pitch is greater than 0: move in one direciton, else move the other
+        if (ypr[1] > 0) stepper.step(1);
         else stepper.step(-1);
     }
 }
