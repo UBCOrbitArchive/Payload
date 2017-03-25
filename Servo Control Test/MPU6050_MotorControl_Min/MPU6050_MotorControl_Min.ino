@@ -18,6 +18,9 @@
 // driver inputs in the order of: IN1, IN2, IN3, IN4
 #define STEPPER_INPUT 8, 10, 9, 11
 
+// using pin 7 as trigger: when motor goes into initial position
+#define TRIGGER 7;
+
 // create new IMU instances
 MPU6050 mpu;
 
@@ -25,7 +28,7 @@ MPU6050 mpu;
 Stepper stepper(STEPS_PER_REV, STEPPER_INPUT);
 
 // motor target value
-double motor_tgt;
+float motor_tgt;
 
 // built in LED output
 #define LED_PIN 13
@@ -66,6 +69,19 @@ void dmpDataReady() {
     mpuInterrupt = true;
 }
 
+#ifdef HARD_INIT
+void stepperHardInit(void) {
+    uint8_t stepCount = 8; 
+    // keep moving the motor until the trigger is triggered
+    while (!digitalRead(TRIGGER)) stepper.step(1);
+
+    // move to initial position (32 steps/rev -> 8 steps/quarter rev)
+    while (stepCount-- > 0) {
+        stepper.step(-1);
+    }
+}
+#endif 
+
 // ===[INITIAL SETUP]===
 void setup() {
     #if IC2DEV_IMPLEMENTATION == IC2DEV_ARDUINI_WIRE
@@ -79,10 +95,6 @@ void setup() {
 
     // initialize device
     mpu.initialize();
-
-    // verify conncetion
-    // Serial.print(F("Testing device connections..."));
-    // Serial.println(mpu.testConnection() ? F("OK") : F("FAILED"));
 
     // load and configure DMP
     devStatus = mpu.dmpInitialize();
@@ -107,10 +119,7 @@ void setup() {
 
         // get expected DMP packet size for later comparison
         packetSize = mpu.dmpGetFIFOPacketSize();
-        } else {
-        // ERROR: (1) = initial memory load fail, (2) = DMP config update fail
     }
-
     // configure pins
     pinMode(LED_PIN, OUTPUT);
 
@@ -119,9 +128,26 @@ void setup() {
 
     // instanciate stepper motor: move stepper motor until 
     #ifdef HARD_INIT
-    // move motor 180 deg one direction
-    #endif 
+        stepperHardInit();
+    #endif
+}
 
+// read information from MPU6050
+void readIMU(void) {
+    // DMP data ready interrupt
+    while (fifoCount < packetSize) fifoCount = mpu.getFIFOCount();
+
+    // read a packet from FIFO
+    mpu.getFIFOBytes(fifoBuffer, packetSize);
+
+    // track FIFO count here for > 1 packets available
+    // immediate read w/o more interrupts
+    fifoCount -= packetSize;
+
+    // get yaw-pitch-roll profiles based on gravity
+    mpu.dmpGetQuaternion(&q, fifoBuffer);
+    mpu.dmpGetGravity(&gravity, &q);
+    mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
 }
 
 // ===[MAIN PROGRAM LOOP]===
@@ -141,23 +167,11 @@ void loop() {
 
     // check for inputstream overflow
     if ((mpuIntStatus & 0x10) || fifoCount == 1024) {
-        // reset
+        // reset FIFO if overflow
         mpu.resetFIFO();
-        } else if (mpuIntStatus & 0x02) {
-        // DMP data ready interrupt
-        while (fifoCount < packetSize) fifoCount = mpu.getFIFOCount();
-
-        // read a packet from FIFO
-        mpu.getFIFOBytes(fifoBuffer, packetSize);
-
-        // track FIFO count here for > 1 packets available
-        // immediate read w/o more interrupts
-        fifoCount -= packetSize;
-
-        // get yaw-pitch-roll profiles based on gravity
-        mpu.dmpGetQuaternion(&q, fifoBuffer);
-        mpu.dmpGetGravity(&gravity, &q);
-        mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
+    } else if (mpuIntStatus & 0x02) {
+        // get from MPU6050
+        readIMU();
 
         // update LED to indicate activity
         LED_blinkState = !LED_blinkState;
