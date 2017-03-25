@@ -11,8 +11,7 @@
 			"file": "Servo Control Test/MPU6050_MotorControl/MPU6050_MotorControl.ino",
 			"settings":
 			{
-				"buffer_size": 5355,
-				"encoding": "UTF-8",
+				"buffer_size": 5343,
 				"line_ending": "Unix"
 			}
 		}
@@ -24,13 +23,37 @@
 	"build_varint": "",
 	"command_palette":
 	{
-		"height": 240.0,
+		"height": 295.0,
 		"last_filter": "install",
 		"selected_items":
 		[
 			[
 				"install",
 				"Package Control: Install Package"
+			],
+			[
+				"inst",
+				"Package Control: Install Package"
+			],
+			[
+				"insta",
+				"Package Control: Install Package"
+			],
+			[
+				"qcomm",
+				"Git: Quick Commit (repo)"
+			],
+			[
+				"add",
+				"Git: Add All"
+			],
+			[
+				"comm",
+				"Git: Commit"
+			],
+			[
+				"open ",
+				"Git: Open..."
 			]
 		],
 		"width": 571.0
@@ -64,7 +87,7 @@
 	],
 	"find":
 	{
-		"height": 0.0
+		"height": 43.0
 	},
 	"find_in_files":
 	{
@@ -110,15 +133,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 5355,
+						"buffer_size": 5343,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								314,
-								314
+								3659,
+								3659
 							]
 						],
 						"settings":
@@ -128,7 +151,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 1695.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
@@ -143,7 +166,7 @@
 	},
 	"input":
 	{
-		"height": 0.0
+		"height": 33.0
 	},
 	"layout":
 	{
@@ -172,6 +195,10 @@
 	{
 		"height": 0.0
 	},
+	"output.git":
+	{
+		"height": 152.0
+	},
 	"pinned_build_system": "",
 	"project": "",
 	"replace":
@@ -190,12 +217,16 @@
 	},
 	"select_project":
 	{
-		"height": 0.0,
+		"height": 625.0,
 		"last_filter": "",
 		"selected_items":
 		[
+			[
+				"",
+				"C:\\Users\\mansu\\OneDrive\\Documents\\Programming\\AWS\\EC2\\mansurhe.com\\css\\default.sublime-workspace"
+			]
 		],
-		"width": 0.0
+		"width": 475.0
 	},
 	"select_symbol":
 	{
