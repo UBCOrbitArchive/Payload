@@ -28,7 +28,8 @@ MPU6050 mpu;
 Stepper stepper(STEPS_PER_REV, STEPPER_INPUT);
 
 // motor target value
-float motor_tgt;
+float stepperTarget;
+uint8_t stepperAbsPos = 0;
 
 // built in LED output
 #define LED_PIN 13
@@ -71,22 +72,31 @@ void dmpDataReady() {
 
 #ifdef HARD_INIT
 void stepperHardInit(void) {
-    uint8_t stepCount = 8; 
+    // uint8_t stepCount = 8; 
     // keep moving the motor until the trigger is triggered
     while (!digitalRead(TRIGGER)) stepper.step(1);
 
     // move to initial position (32 steps/rev -> 8 steps/quarter rev)
-    while (stepCount-- > 0) {
-        stepper.step(-1);
-    }
+    // while (stepCount-- > 0) {
+    //     stepper.step(-1);
+    // }
 }
 #endif 
+
+// stepper motor movement functions
+void stepForward(void) {
+    stepper.step(1);
+    stepperAbsPos++;
+}
+void stepBackward(void) {
+    stepper.step(-1);
+    stepperAbsPos--;
+}
 
 // ===[INITIAL SETUP]===
 void setup() {
     #if IC2DEV_IMPLEMENTATION == IC2DEV_ARDUINI_WIRE
     Wire.begin();
-
     // 400kHz I2C clock
     TWBR = 24;
     #elif IC2DEV_IMPLEMENTATION == I2CDEV_BUILTIN_FASTWIRE
@@ -128,7 +138,7 @@ void setup() {
 
     // instanciate stepper motor: move stepper motor until 
     #ifdef HARD_INIT
-        stepperHardInit();
+    stepperHardInit();
     #endif
 }
 
@@ -180,7 +190,13 @@ void loop() {
         // set motor target based on PITCH (ypr[1])
         // **ASSUMING that IMU is placed in reference to rotor
         // if pitch is greater than 0: move in one direciton, else move the other
-        if (ypr[1] > 0) stepper.step(1);
-        else stepper.step(-1);
+        // if (ypr[1] > 0) stepper.step(1);
+        // else stepper.step(-1);
+
+        // map orientation to stepper target angle
+
+        // turn stepper motor
+        if (stepperTarget - stepperAbsPos > 0) stepForward();
+        else stepBackward();
     }
 }
